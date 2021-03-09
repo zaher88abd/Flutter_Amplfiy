@@ -130,7 +130,9 @@ class _LoginPageState extends State<LoginPage> {
   FormType _form = FormType
       .login; // our default setting is to login, and we should switch to creating an account when the user chooses to
 
-  var isSignUpComplete = false;
+  bool isSignUpComplete = false;
+  bool isSignedIn = false;
+
   _LoginPageState() {
     _emailFilter.addListener(_emailListen);
     _passwordFilter.addListener(_passwordListen);
@@ -249,6 +251,21 @@ class _LoginPageState extends State<LoginPage> {
   // These functions can self contain any user auth logic required, they all have access to _email and _password
 
   void _loginPressed() async {
+    try {
+      SignInResult res = await Amplify.Auth.signIn(
+        username: _email,
+        password: _password,
+      );
+      setState(() {
+        isSignedIn = res.isSignedIn;
+        print("User: " +
+            _email +
+            (res.isSignedIn ? " Singed in Succsfully" : " Faild to singin "));
+      });
+    } on AuthException catch (e) {
+      print(e.message);
+    }
+
     print('The user wants to login with $_email and $_password');
   }
 
