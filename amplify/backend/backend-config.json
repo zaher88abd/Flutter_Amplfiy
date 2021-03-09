@@ -1,1 +1,10 @@
-{}
+{
+	"auth": {
+		"flutteramplifytutoirdc1baaf2": {
+			"service": "Cognito",
+			"providerPlugin": "awscloudformation",
+			"dependsOn": [],
+			"customAuth": false
+		}
+	}
+}

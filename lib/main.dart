@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 // Amplify Flutter Packages
 import 'package:amplify_flutter/amplify.dart';
-import 'package:amplify_analytics_pinpoint/amplify_analytics_pinpoint.dart';
+// import 'package:amplify_analytics_pinpoint/amplify_analytics_pinpoint.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 
 // Generated in previous step
@@ -73,6 +73,16 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  // Future<String> _signIn(LoginData data) async {
+  //   print("singup");
+  //   return '';
+  // }
+
+  // Future<String> _singUp(LoginData data) async {
+  //   print("singup");
+  //   return '';
+  // }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -81,55 +91,17 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    return new MaterialApp(
+      title: 'Flutter Simple Login Demo',
+      theme: new ThemeData(primarySwatch: Colors.blue),
+      home: new LoginPage(),
     );
   }
 
   void _configureAmplify() async {
     // Add Pinpoint and Cognito Plugins, or any other plugins you want to use
-    AmplifyAnalyticsPinpoint analyticsPlugin = AmplifyAnalyticsPinpoint();
     AmplifyAuthCognito authPlugin = AmplifyAuthCognito();
-    Amplify.addPlugins([authPlugin, analyticsPlugin]);
+    Amplify.addPlugins([authPlugin]);
 
     // Once Plugins are added, configure Amplify
     // Note: Amplify can only be configured once.
@@ -139,5 +111,169 @@ class _MyHomePageState extends State<MyHomePage> {
       print(
           "Tried to reconfigure Amplify; this can occur when your app restarts on Android.");
     }
+  }
+}
+
+class LoginPage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _LoginPageState();
+}
+
+// Used for controlling whether the user is loggin or creating an account
+enum FormType { login, register }
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _emailFilter = new TextEditingController();
+  final TextEditingController _passwordFilter = new TextEditingController();
+  String _email = "";
+  String _password = "";
+  FormType _form = FormType
+      .login; // our default setting is to login, and we should switch to creating an account when the user chooses to
+
+  var isSignUpComplete = false;
+  _LoginPageState() {
+    _emailFilter.addListener(_emailListen);
+    _passwordFilter.addListener(_passwordListen);
+  }
+
+  void _emailListen() {
+    if (_emailFilter.text.isEmpty) {
+      _email = "";
+    } else {
+      _email = _emailFilter.text;
+    }
+  }
+
+  void _passwordListen() {
+    if (_passwordFilter.text.isEmpty) {
+      _password = "";
+    } else {
+      _password = _passwordFilter.text;
+    }
+  }
+
+  // Swap in between our two forms, registering and logging in
+  void _formChange() async {
+    setState(() {
+      if (_form == FormType.register) {
+        _form = FormType.login;
+      } else {
+        _form = FormType.register;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: _buildBar(context),
+      body: new Container(
+        padding: EdgeInsets.all(16.0),
+        child: new Column(
+          children: <Widget>[
+            _buildTextFields(),
+            _buildButtons(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBar(BuildContext context) {
+    return new AppBar(
+      title: new Text("Simple Login Example"),
+      centerTitle: true,
+    );
+  }
+
+  Widget _buildTextFields() {
+    return new Container(
+      child: new Column(
+        children: <Widget>[
+          new Container(
+            child: new TextField(
+              controller: _emailFilter,
+              decoration: new InputDecoration(labelText: 'Email'),
+            ),
+          ),
+          new Container(
+            child: new TextField(
+              controller: _passwordFilter,
+              decoration: new InputDecoration(labelText: 'Password'),
+              obscureText: true,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildButtons() {
+    if (_form == FormType.login) {
+      return Container(
+        child: Column(
+          children: <Widget>[
+            ElevatedButton(
+              child: Text('Login'),
+              onPressed: _loginPressed,
+            ),
+            ElevatedButton(
+              child: Text('Dont have an account? Tap here to register.'),
+              onPressed: _formChange,
+            ),
+            ElevatedButton(
+              child: Text('Forgot Password?'),
+              onPressed: _passwordReset,
+            )
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        child: Column(
+          children: <Widget>[
+            ElevatedButton(
+              child: Text('Create an Account'),
+              onPressed: _createAccountPressed,
+            ),
+            TextButton(
+              child: Text('Have an account? Click here to login.'),
+              onPressed: _formChange,
+            )
+          ],
+        ),
+      );
+    }
+  }
+
+  // These functions can self contain any user auth logic required, they all have access to _email and _password
+
+  void _loginPressed() async {
+    print('The user wants to login with $_email and $_password');
+  }
+
+  void _createAccountPressed() async {
+    try {
+      Map<String, String> userAttributes = {
+        'email': _email,
+        'phone_number': '+15559101234',
+        // additional attributes as needed
+      };
+      SignUpResult res = await Amplify.Auth.signUp(
+          username: _email,
+          password: _password,
+          options: CognitoSignUpOptions(userAttributes: userAttributes));
+
+      print("SingUp" + (res.isSignUpComplete ? "Complete" : "Not Complete"));
+
+      print('The user wants to create an accoutn with $_email and $_password');
+      _formChange();
+    } on AuthException catch (e) {
+      print(e.message);
+    }
+  }
+
+  void _passwordReset() {
+    print("The user wants a password reset request sent to $_email");
   }
 }
